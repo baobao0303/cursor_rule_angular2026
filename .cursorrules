@@ -1,0 +1,50 @@
+# Cursor Rules for Angular Project
+
+This project uses Angular v21+ with modern patterns and best practices.
+
+## Core Rules
+
+All development must follow these principles:
+
+1. **Angular Best Practices**
+   - Use standalone components
+   - Leverage signals for reactive state
+   - Use OnPush change detection by default
+   - Follow TypeScript strict mode
+   - Implement proper dependency injection
+
+2. **Code Quality**
+   - Write comprehensive tests
+   - Follow Angular style guide
+   - Use proper error handling
+   - Implement proper logging
+
+3. **Project Structure**
+   - Follow Angular folder structure conventions
+   - Keep components small and focused
+   - Use services for business logic
+   - Implement proper routing
+
+## Included Rules
+
+This project includes comprehensive rules from:
+- `project-rules/` - Project-specific Angular rules
+- `global-rules/` - Global development rules
+- `docs/` - Angular and MCP documentation
+
+## Key Commands
+
+Available slash commands:
+- `/commit` - Create well-formatted commits
+- `/bug-fix` - Complete bug fix workflow
+- `/pr-review` - Comprehensive PR reviews
+- `/implement-task` - Methodical task implementation
+- `/check` - Code quality checks
+- `/clean` - Fix formatting and quality issues
+
+## References
+
+See individual rule files in:
+- `project-rules/*.mdc`
+- `global-rules/*.mdc`
+- `docs/*.mdc`

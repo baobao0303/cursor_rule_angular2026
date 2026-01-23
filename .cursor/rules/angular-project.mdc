@@ -1,0 +1,53 @@
+---
+description: Master rule file that includes all Angular project rules, global rules, and documentation
+globs: "**/*"
+alwaysApply: true
+---
+
+# Angular Project Master Rules
+
+This rule file includes all project rules, global rules, and documentation for comprehensive Angular development context.
+
+## Project Rules Reference
+
+All project-specific rules are available in `project-rules/` directory:
+- Modern Angular development patterns
+- Task implementation workflows
+- Git and GitHub workflows
+- Code quality and testing
+- Documentation generation
+
+## Global Rules Reference
+
+Global development rules in `global-rules/`:
+- GitHub issue creation
+- MCP server setup and configuration
+- Development best practices
+
+## Documentation Reference
+
+Comprehensive documentation in `docs/`:
+- Angular v21+ patterns and best practices
+- Testing API and playbook
+- CLI commands reference
+- Signals and reactive patterns
+- Migration guides
+- Data management patterns
+
+## Quick Access
+
+For specific topics, reference:
+- Angular patterns: `@docs/modern-angular.mdc`
+- Testing: `@docs/angular-testing-api.mdc`
+- CLI: `@docs/angular-cli-commands.mdc`
+- Signals: `@docs/angular-signals.mdc`
+- Migration: `@docs/angular-migration-guide.mdc`
+
+## Project Context
+
+This is an Angular v21+ project with:
+- Standalone components
+- Signals-based reactivity
+- OnPush change detection
+- TypeScript strict mode
+- Comprehensive testing

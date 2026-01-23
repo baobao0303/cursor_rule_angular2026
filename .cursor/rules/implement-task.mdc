@@ -1,0 +1,95 @@
+---
+description: Approach task implementation methodically with careful planning and execution
+globs: "**/*"
+alwaysApply: false
+---
+
+# Implement Task
+
+Approach task implementation methodically with careful planning and execution.
+
+## Process:
+
+### 1. Think Through Strategy
+- Understand the complete requirement
+- Identify key components needed
+- Consider dependencies and constraints
+- Plan the implementation approach
+
+### 2. Evaluate Approaches
+- List possible implementation strategies
+- Compare pros and cons of each
+- Consider:
+  - Performance implications
+  - Maintainability
+  - Scalability
+  - Code reusability
+  - Testing complexity
+
+### 3. Consider Tradeoffs
+- Short-term vs long-term benefits
+- Complexity vs simplicity
+- Performance vs readability
+- Flexibility vs focused solution
+- Time to implement vs perfect solution
+
+### 4. Implementation Steps (Angular)
+1. Break down into subtasks (components, services, models, etc.)
+2. Generate Angular artifacts using CLI:
+   - `ng generate component <name>`
+   - `ng generate service <name>`
+   - `ng generate guard <name>`
+   - `ng generate interceptor <name>`
+3. Start with core functionality:
+   - Define interfaces/models
+   - Create services for business logic
+   - Build components with templates
+4. Implement incrementally:
+   - Write unit tests alongside code
+   - Test components with `TestBed`
+   - Test services with mocked dependencies
+5. Integrate components:
+   - Use `@Input()` and `@Output()` for communication
+   - Inject services via constructor
+   - Handle routing if needed
+6. Add error handling:
+   - Use RxJS `catchError` operator
+   - Implement error interceptors
+   - Display user-friendly error messages
+7. Optimize if needed:
+   - Use `OnPush` change detection
+   - Implement lazy loading
+   - Add `trackBy` functions
+8. Document decisions:
+   - Add JSDoc comments
+   - Update component/service documentation
+
+### 5. Angular Best Practices
+- Write tests first (TDD approach) with `ng test`
+- Keep components small and focused (single responsibility)
+- Use services for business logic, not components
+- Use `OnPush` change detection by default
+- Leverage RxJS operators for async operations
+- Use `async` pipe in templates instead of manual subscriptions
+- Follow Angular style guide naming conventions
+- Use TypeScript strict mode
+- Comment complex logic with JSDoc
+- Handle edge cases and errors gracefully
+- Consider performance implications (lazy loading, OnPush, etc.)
+- Use dependency injection properly
+
+## Angular Checklist:
+- [ ] Requirements fully understood
+- [ ] Approach documented
+- [ ] Angular components/services generated with CLI
+- [ ] Unit tests written and passing (`ng test`)
+- [ ] Code implemented following Angular best practices
+- [ ] Change detection strategy considered (OnPush)
+- [ ] RxJS subscriptions properly handled (unsubscribe or async pipe)
+- [ ] Error handling implemented
+- [ ] Edge cases handled
+- [ ] Linting passes (`ng lint`)
+- [ ] Build succeeds (`ng build`)
+- [ ] Documentation updated (JSDoc, README)
+- [ ] Code reviewed
+- [ ] Performance acceptable (bundle size, change detection)

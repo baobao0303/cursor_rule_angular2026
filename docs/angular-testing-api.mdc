@@ -1,0 +1,302 @@
+---
+description: Angular testing API reference and patterns for unit and integration tests
+globs: "**/*.spec.ts, **/*.test.ts"
+alwaysApply: false
+---
+
+# Angular Testing API
+
+**Comprehensive guide to testing Angular applications**
+
+## Testing Setup
+
+### TestBed Configuration
+```typescript
+import { TestBed } from '@angular/core/testing';
+import { ComponentFixture } from '@angular/core/testing';
+
+describe('ComponentName', () => {
+  let component: ComponentName;
+  let fixture: ComponentFixture<ComponentName>;
+  
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ComponentName], // For standalone components
+      // OR
+      declarations: [ComponentName], // For NgModule components
+      providers: [
+        { provide: ServiceName, useValue: mockService }
+      ]
+    }).compileComponents();
+    
+    fixture = TestBed.createComponent(ComponentName);
+    component = fixture.componentInstance;
+  });
+});
+```
+
+## Component Testing
+
+### Basic Component Test
+```typescript
+it('should create', () => {
+  expect(component).toBeTruthy();
+});
+
+it('should display title', () => {
+  component.title = 'Test Title';
+  fixture.detectChanges();
+  
+  const compiled = fixture.nativeElement;
+  expect(compiled.querySelector('h1').textContent).toContain('Test Title');
+});
+```
+
+### Testing Component Inputs
+```typescript
+it('should accept input', () => {
+  component.user = { id: 1, name: 'Test' };
+  fixture.detectChanges();
+  
+  expect(component.user.name).toBe('Test');
+});
+```
+
+### Testing Component Outputs
+```typescript
+it('should emit event', () => {
+  spyOn(component.userSelected, 'emit');
+  
+  component.selectUser({ id: 1, name: 'Test' });
+  
+  expect(component.userSelected.emit).toHaveBeenCalledWith({ id: 1, name: 'Test' });
+});
+```
+
+## Service Testing
+
+### Service with HttpClient
+```typescript
+import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+
+describe('UserService', () => {
+  let service: UserService;
+  let httpMock: HttpTestingController;
+  
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [UserService]
+    });
+    
+    service = TestBed.inject(UserService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+  
+  afterEach(() => {
+    httpMock.verify();
+  });
+  
+  it('should fetch users', () => {
+    const mockUsers = [{ id: 1, name: 'Test' }];
+    
+    service.getUsers().subscribe(users => {
+      expect(users).toEqual(mockUsers);
+    });
+    
+    const req = httpMock.expectOne('/api/users');
+    expect(req.request.method).toBe('GET');
+    req.flush(mockUsers);
+  });
+});
+```
+
+## Form Testing
+
+### Reactive Forms
+```typescript
+it('should validate form', () => {
+  component.form.controls['email'].setValue('invalid');
+  expect(component.form.controls['email'].valid).toBeFalsy();
+  
+  component.form.controls['email'].setValue('test@example.com');
+  expect(component.form.controls['email'].valid).toBeTruthy();
+});
+
+it('should submit form when valid', () => {
+  component.form.setValue({
+    name: 'Test',
+    email: 'test@example.com'
+  });
+  
+  spyOn(component, 'onSubmit');
+  component.onSubmit();
+  
+  expect(component.onSubmit).toHaveBeenCalled();
+});
+```
+
+## Router Testing
+
+### Testing Navigation
+```typescript
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
+
+describe('Component with Router', () => {
+  let router: Router;
+  
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        RouterTestingModule.withRoutes([
+          { path: 'users', component: UsersComponent }
+        ])
+      ]
+    });
+    
+    router = TestBed.inject(Router);
+  });
+  
+  it('should navigate to users', () => {
+    const navigateSpy = spyOn(router, 'navigate');
+    
+    component.navigateToUsers();
+    
+    expect(navigateSpy).toHaveBeenCalledWith(['/users']);
+  });
+});
+```
+
+## Async Testing
+
+### Testing Observables
+```typescript
+import { fakeAsync, tick } from '@angular/core/testing';
+
+it('should handle async operation', fakeAsync(() => {
+  let result: any;
+  
+  service.getData().subscribe(data => {
+    result = data;
+  });
+  
+  tick(1000); // Simulate time passage
+  
+  expect(result).toBeDefined();
+}));
+```
+
+### Testing Promises
+```typescript
+it('should handle promise', async () => {
+  const result = await component.loadData();
+  expect(result).toBeDefined();
+});
+```
+
+## Signal Testing
+
+### Testing Signals
+```typescript
+it('should update signal', () => {
+  component.count.set(10);
+  expect(component.count()).toBe(10);
+});
+
+it('should compute value', () => {
+  component.items.set([1, 2, 3]);
+  expect(component.itemCount()).toBe(3);
+});
+```
+
+## Mocking and Spies
+
+### Creating Mocks
+```typescript
+const mockUserService = {
+  getUsers: jasmine.createSpy('getUsers').and.returnValue(of([])),
+  createUser: jasmine.createSpy('createUser').and.returnValue(of({}))
+};
+
+// Or with Jest
+const mockUserService = {
+  getUsers: jest.fn().mockReturnValue(of([])),
+  createUser: jest.fn().mockReturnValue(of({}))
+};
+```
+
+### Using Spies
+```typescript
+it('should call service method', () => {
+  const spy = spyOn(service, 'getData').and.returnValue(of([]));
+  
+  component.loadData();
+  
+  expect(spy).toHaveBeenCalled();
+});
+```
+
+## E2E Testing
+
+### Using Cypress
+```typescript
+describe('User Flow', () => {
+  it('should create user', () => {
+    cy.visit('/users');
+    cy.get('[data-cy=create-button]').click();
+    cy.get('[data-cy=name-input]').type('Test User');
+    cy.get('[data-cy=email-input]').type('test@example.com');
+    cy.get('[data-cy=submit-button]').click();
+    cy.contains('User created successfully');
+  });
+});
+```
+
+## Testing Best Practices
+
+### 1. Test Isolation
+- Each test should be independent
+- Use `beforeEach` for setup
+- Clean up in `afterEach`
+
+### 2. Descriptive Test Names
+```typescript
+// ✅ DO
+it('should display error message when API call fails', () => {});
+
+// ❌ DON'T
+it('should work', () => {});
+```
+
+### 3. Arrange-Act-Assert Pattern
+```typescript
+it('should calculate total', () => {
+  // Arrange
+  component.items = [1, 2, 3];
+  
+  // Act
+  const total = component.calculateTotal();
+  
+  // Assert
+  expect(total).toBe(6);
+});
+```
+
+### 4. Test User Interactions
+```typescript
+it('should handle button click', () => {
+  const button = fixture.nativeElement.querySelector('button');
+  button.click();
+  fixture.detectChanges();
+  
+  expect(component.counter).toBe(1);
+});
+```
+
+## References
+
+- [Angular Testing Guide](https://angular.dev/guide/testing)
+- [Jasmine Documentation](https://jasmine.github.io/)
+- [Angular Testing Utilities](https://angular.dev/api/core/testing)

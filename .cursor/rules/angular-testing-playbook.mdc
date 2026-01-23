@@ -1,0 +1,400 @@
+---
+description: Practical testing playbook with common Angular testing scenarios and solutions
+globs: "**/*.spec.ts, **/*.test.ts"
+alwaysApply: false
+---
+
+# Angular Testing Playbook
+
+**Practical testing scenarios and solutions for Angular applications**
+
+## Common Testing Scenarios
+
+### 1. Testing Component with Service Dependency
+
+```typescript
+describe('UserListComponent', () => {
+  let component: UserListComponent;
+  let fixture: ComponentFixture<UserListComponent>;
+  let userService: jasmine.SpyObj<UserService>;
+  
+  beforeEach(async () => {
+    const spy = jasmine.createSpyObj('UserService', ['getUsers', 'deleteUser']);
+    
+    await TestBed.configureTestingModule({
+      imports: [UserListComponent],
+      providers: [
+        { provide: UserService, useValue: spy }
+      ]
+    }).compileComponents();
+    
+    fixture = TestBed.createComponent(UserListComponent);
+    component = fixture.componentInstance;
+    userService = TestBed.inject(UserService) as jasmine.SpyObj<UserService>;
+  });
+  
+  it('should load users on init', () => {
+    const mockUsers = [{ id: 1, name: 'Test' }];
+    userService.getUsers.and.returnValue(of(mockUsers));
+    
+    component.ngOnInit();
+    
+    expect(userService.getUsers).toHaveBeenCalled();
+    expect(component.users()).toEqual(mockUsers);
+  });
+});
+```
+
+### 2. Testing HTTP Requests
+
+```typescript
+describe('UserService', () => {
+  let service: UserService;
+  let httpMock: HttpTestingController;
+  
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [UserService]
+    });
+    
+    service = TestBed.inject(UserService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+  
+  afterEach(() => {
+    httpMock.verify();
+  });
+  
+  it('should create user', () => {
+    const newUser = { name: 'Test', email: 'test@example.com' };
+    const createdUser = { id: 1, ...newUser };
+    
+    service.createUser(newUser).subscribe(user => {
+      expect(user).toEqual(createdUser);
+    });
+    
+    const req = httpMock.expectOne('/api/users');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(newUser);
+    req.flush(createdUser);
+  });
+  
+  it('should handle error', () => {
+    service.getUsers().subscribe({
+      next: () => fail('should have failed'),
+      error: (error) => {
+        expect(error.status).toBe(500);
+      }
+    });
+    
+    const req = httpMock.expectOne('/api/users');
+    req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
+  });
+});
+```
+
+### 3. Testing Forms
+
+```typescript
+describe('UserFormComponent', () => {
+  let component: UserFormComponent;
+  let fixture: ComponentFixture<UserFormComponent>;
+  
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [UserFormComponent, ReactiveFormsModule]
+    }).compileComponents();
+    
+    fixture = TestBed.createComponent(UserFormComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+  
+  it('should validate required fields', () => {
+    const nameControl = component.form.get('name');
+    nameControl?.setValue('');
+    
+    expect(nameControl?.valid).toBeFalsy();
+    expect(nameControl?.errors?.['required']).toBeTruthy();
+  });
+  
+  it('should validate email format', () => {
+    const emailControl = component.form.get('email');
+    emailControl?.setValue('invalid-email');
+    
+    expect(emailControl?.valid).toBeFalsy();
+    expect(emailControl?.errors?.['email']).toBeTruthy();
+  });
+  
+  it('should submit valid form', () => {
+    component.form.setValue({
+      name: 'Test User',
+      email: 'test@example.com'
+    });
+    
+    spyOn(component, 'onSubmit');
+    component.onSubmit();
+    
+    expect(component.onSubmit).toHaveBeenCalled();
+  });
+});
+```
+
+### 4. Testing Router Navigation
+
+```typescript
+describe('UserDetailComponent', () => {
+  let component: UserDetailComponent;
+  let fixture: ComponentFixture<UserDetailComponent>;
+  let router: Router;
+  
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [
+        UserDetailComponent,
+        RouterTestingModule.withRoutes([
+          { path: 'users', component: UsersComponent },
+          { path: 'users/:id', component: UserDetailComponent }
+        ])
+      ]
+    }).compileComponents();
+    
+    fixture = TestBed.createComponent(UserDetailComponent);
+    component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+  });
+  
+  it('should navigate to users list', () => {
+    const navigateSpy = spyOn(router, 'navigate');
+    
+    component.goBack();
+    
+    expect(navigateSpy).toHaveBeenCalledWith(['/users']);
+  });
+  
+  it('should get route parameter', () => {
+    const activatedRoute = TestBed.inject(ActivatedRoute);
+    activatedRoute.params = of({ id: '123' });
+    
+    component.ngOnInit();
+    
+    expect(component.userId).toBe('123');
+  });
+});
+```
+
+### 5. Testing Signals
+
+```typescript
+describe('CounterComponent', () => {
+  let component: CounterComponent;
+  let fixture: ComponentFixture<CounterComponent>;
+  
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [CounterComponent]
+    }).compileComponents();
+    
+    fixture = TestBed.createComponent(CounterComponent);
+    component = fixture.componentInstance;
+  });
+  
+  it('should increment counter', () => {
+    expect(component.count()).toBe(0);
+    
+    component.increment();
+    
+    expect(component.count()).toBe(1);
+  });
+  
+  it('should compute double value', () => {
+    component.count.set(5);
+    
+    expect(component.doubleCount()).toBe(10);
+  });
+});
+```
+
+### 6. Testing Async Operations
+
+```typescript
+describe('DataComponent', () => {
+  it('should load data asynchronously', fakeAsync(() => {
+    const service = TestBed.inject(DataService);
+    spyOn(service, 'loadData').and.returnValue(
+      of([1, 2, 3]).pipe(delay(1000))
+    );
+    
+    component.loadData();
+    expect(component.loading()).toBe(true);
+    
+    tick(1000);
+    
+    expect(component.loading()).toBe(false);
+    expect(component.data().length).toBe(3);
+  }));
+  
+  it('should handle async error', async () => {
+    const service = TestBed.inject(DataService);
+    spyOn(service, 'loadData').and.returnValue(
+      throwError(() => new Error('Failed'))
+    );
+    
+    try {
+      await component.loadDataAsync();
+      fail('should have thrown error');
+    } catch (error) {
+      expect(error.message).toBe('Failed');
+    }
+  });
+});
+```
+
+### 7. Testing Component Outputs
+
+```typescript
+describe('UserCardComponent', () => {
+  it('should emit user selected event', () => {
+    const user = { id: 1, name: 'Test' };
+    let emittedUser: any;
+    
+    component.userSelected.subscribe(user => {
+      emittedUser = user;
+    });
+    
+    component.selectUser(user);
+    
+    expect(emittedUser).toEqual(user);
+  });
+});
+```
+
+### 8. Testing Directives
+
+```typescript
+describe('HighlightDirective', () => {
+  let fixture: ComponentFixture<TestComponent>;
+  
+  beforeEach(() => {
+    fixture = TestBed.createComponent(TestComponent);
+    fixture.detectChanges();
+  });
+  
+  it('should apply highlight class', () => {
+    const element = fixture.nativeElement.querySelector('[appHighlight]');
+    expect(element.classList.contains('highlight')).toBeTruthy();
+  });
+});
+```
+
+### 9. Testing Pipes
+
+```typescript
+describe('CurrencyPipe', () => {
+  let pipe: CurrencyPipe;
+  
+  beforeEach(() => {
+    pipe = new CurrencyPipe('en-US');
+  });
+  
+  it('should format currency', () => {
+    expect(pipe.transform(1000)).toBe('$1,000.00');
+  });
+});
+```
+
+### 10. Testing Guards
+
+```typescript
+describe('AuthGuard', () => {
+  let guard: AuthGuard;
+  let authService: jasmine.SpyObj<AuthService>;
+  let router: Router;
+  
+  beforeEach(() => {
+    const spy = jasmine.createSpyObj('AuthService', ['isAuthenticated']);
+    
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      providers: [
+        AuthGuard,
+        { provide: AuthService, useValue: spy }
+      ]
+    });
+    
+    guard = TestBed.inject(AuthGuard);
+    authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
+    router = TestBed.inject(Router);
+  });
+  
+  it('should allow access when authenticated', () => {
+    authService.isAuthenticated.and.returnValue(true);
+    
+    expect(guard.canActivate()).toBe(true);
+  });
+  
+  it('should redirect when not authenticated', () => {
+    authService.isAuthenticated.and.returnValue(false);
+    const navigateSpy = spyOn(router, 'navigate');
+    
+    expect(guard.canActivate()).toBe(false);
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+  });
+});
+```
+
+## Testing Utilities
+
+### Custom Matchers
+```typescript
+beforeEach(() => {
+  jasmine.addMatchers({
+    toBeValidUser: () => ({
+      compare: (actual: User) => ({
+        pass: actual.id > 0 && actual.name.length > 0,
+        message: `Expected ${actual} to be a valid user`
+      })
+    })
+  });
+});
+
+// Usage
+expect(user).toBeValidUser();
+```
+
+## Best Practices
+
+1. **Test Behavior, Not Implementation**
+   - Test what the component does, not how it does it
+   - Focus on user interactions and outcomes
+
+2. **Use Descriptive Test Names**
+   ```typescript
+   // ✅ Good
+   it('should display error message when API call fails', () => {});
+   
+   // ❌ Bad
+   it('should work', () => {});
+   ```
+
+3. **Keep Tests Simple**
+   - One assertion per test when possible
+   - Test one thing at a time
+
+4. **Mock External Dependencies**
+   - Mock HTTP calls
+   - Mock services
+   - Mock router
+
+5. **Clean Up After Tests**
+   ```typescript
+   afterEach(() => {
+     httpMock.verify(); // Verify no outstanding HTTP requests
+   });
+   ```
+
+## References
+
+- [Angular Testing Guide](https://angular.dev/guide/testing)
+- [Testing Best Practices](https://angular.dev/guide/testing/best-practices)

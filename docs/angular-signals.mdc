@@ -1,0 +1,308 @@
+---
+description: Angular Signals API and reactive state management patterns
+globs: "**/*.{ts,html}"
+alwaysApply: false
+---
+
+# Angular Signals
+
+**Modern reactive state management with Angular Signals (Angular v16+)**
+
+## Signal Basics
+
+### Creating Signals
+```typescript
+import { signal, computed, effect } from '@angular/core';
+
+// ✅ DO: Create writable signal
+const count = signal(0);
+
+// ✅ DO: Create read-only signal
+const readonlyCount = count.asReadonly();
+
+// ✅ DO: Create signal with initial value
+const users = signal<User[]>([]);
+```
+
+### Reading Signals
+```typescript
+// ✅ DO: Read signal value
+const currentCount = count();
+
+// ✅ DO: Use in computed
+const doubleCount = computed(() => count() * 2);
+
+// ❌ DON'T: Access signal without calling
+const wrong = count; // This is the signal object, not the value
+```
+
+### Updating Signals
+```typescript
+// ✅ DO: Set new value
+count.set(10);
+
+// ✅ DO: Update based on current value
+count.update(value => value + 1);
+
+// ✅ DO: Mutate array/object (if needed)
+users.update(users => [...users, newUser]);
+```
+
+## Computed Signals
+
+### Basic Computed
+```typescript
+// ✅ DO: Create computed signal
+const total = computed(() => {
+  return items().reduce((sum, item) => sum + item.price, 0);
+});
+
+// ✅ DO: Computed with multiple signals
+const fullName = computed(() => {
+  return `${firstName()} ${lastName()}`;
+});
+```
+
+### Computed Best Practices
+```typescript
+// ✅ DO: Keep computed pure
+const isValid = computed(() => {
+  return email().includes('@') && password().length >= 8;
+});
+
+// ❌ DON'T: Side effects in computed
+const badComputed = computed(() => {
+  console.log('This is wrong'); // Side effect!
+  return count() * 2;
+});
+```
+
+## Effects
+
+### Creating Effects
+```typescript
+import { effect } from '@angular/core';
+
+// ✅ DO: Create effect
+effect(() => {
+  console.log('Count changed:', count());
+});
+
+// ✅ DO: Effect with cleanup
+effect((onCleanup) => {
+  const subscription = service.getData().subscribe();
+  
+  onCleanup(() => {
+    subscription.unsubscribe();
+  });
+});
+```
+
+### Effect Best Practices
+```typescript
+// ✅ DO: Use effects for side effects
+effect(() => {
+  if (user()) {
+    localStorage.setItem('user', JSON.stringify(user()));
+  }
+});
+
+// ❌ DON'T: Use effects for derived state (use computed instead)
+effect(() => {
+  const doubled = count() * 2; // Should be computed
+});
+```
+
+## Signals in Components
+
+### Component with Signals
+```typescript
+@Component({
+  selector: 'app-counter',
+  standalone: true,
+  template: `
+    <p>Count: {{ count() }}</p>
+    <p>Double: {{ doubleCount() }}</p>
+    <button (click)="increment()">Increment</button>
+  `
+})
+export class CounterComponent {
+  // ✅ DO: Use signals for component state
+  count = signal(0);
+  doubleCount = computed(() => this.count() * 2);
+  
+  increment() {
+    this.count.update(c => c + 1);
+  }
+}
+```
+
+### Signals with Input/Output
+```typescript
+@Component({
+  selector: 'app-user',
+  standalone: true
+})
+export class UserComponent {
+  // ✅ DO: Convert input to signal
+  private userInput = input.required<User>();
+  user = computed(() => this.userInput());
+  
+  // ✅ DO: Use output with signals
+  userSelected = output<User>();
+  
+  selectUser() {
+    this.userSelected.emit(this.user());
+  }
+}
+```
+
+## Signals in Services
+
+### Service with Signals
+```typescript
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  // ✅ DO: Private writable signal
+  private users = signal<User[]>([]);
+  
+  // ✅ DO: Public readonly signal
+  readonly users$ = this.users.asReadonly();
+  
+  // ✅ DO: Computed signals
+  userCount = computed(() => this.users().length);
+  hasUsers = computed(() => this.users().length > 0);
+  
+  // ✅ DO: Loading state with signal
+  loading = signal(false);
+  error = signal<string | null>(null);
+  
+  loadUsers() {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    this.http.get<User[]>('/api/users')
+      .pipe(
+        catchError(error => {
+          this.error.set(error.message);
+          return of([]);
+        }),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe(users => this.users.set(users));
+  }
+}
+```
+
+## Signals with RxJS
+
+### Converting Between Signals and Observables
+```typescript
+import { toSignal, toObservable } from '@angular/core/rxjs-interop';
+
+// ✅ DO: Convert observable to signal
+const users$ = this.http.get<User[]>('/api/users');
+const users = toSignal(users$, { initialValue: [] });
+
+// ✅ DO: Convert signal to observable
+const count$ = toObservable(this.count);
+
+// ✅ DO: Use with RxJS operators
+const filteredUsers = toSignal(
+  this.users$.pipe(
+    map(users => users.filter(u => u.active))
+  ),
+  { initialValue: [] }
+);
+```
+
+## Template Usage
+
+### Signals in Templates
+```html
+<!-- ✅ DO: Call signal in template -->
+<div *ngFor="let user of users()">
+  {{ user.name }}
+</div>
+
+<!-- ✅ DO: Use computed signals -->
+<p>Total: {{ total() }}</p>
+
+<!-- ✅ DO: Conditional with signals -->
+<div *ngIf="hasUsers()">
+  Users loaded
+</div>
+
+<!-- ✅ DO: Signal with async pipe (if converted to observable) -->
+<div *ngFor="let user of users$ | async">
+  {{ user.name }}
+</div>
+```
+
+## Best Practices
+
+### 1. Use Signals for Local State
+```typescript
+// ✅ DO: Signals for component state
+export class MyComponent {
+  count = signal(0);
+  items = signal<Item[]>([]);
+}
+```
+
+### 2. Use Computed for Derived State
+```typescript
+// ✅ DO: Computed for derived values
+const total = computed(() => items().reduce((sum, item) => sum + item.price, 0));
+```
+
+### 3. Use Effects for Side Effects
+```typescript
+// ✅ DO: Effects for side effects
+effect(() => {
+  if (user()) {
+    this.router.navigate(['/dashboard']);
+  }
+});
+```
+
+### 4. Prefer Immutable Updates
+```typescript
+// ✅ DO: Immutable updates
+users.update(users => [...users, newUser]);
+
+// ❌ DON'T: Mutate directly (if possible)
+users().push(newUser); // Avoid if possible
+```
+
+## Migration from RxJS
+
+### Replacing BehaviorSubject
+```typescript
+// Before (RxJS)
+private users$ = new BehaviorSubject<User[]>([]);
+get users() { return this.users$.asObservable(); }
+
+// After (Signals)
+private users = signal<User[]>([]);
+readonly users$ = this.users.asReadonly();
+```
+
+### Replacing Observable State
+```typescript
+// Before
+users$ = this.http.get<User[]>('/api/users').pipe(
+  shareReplay(1)
+);
+
+// After
+users = toSignal(
+  this.http.get<User[]>('/api/users'),
+  { initialValue: [] }
+);
+```
+
+## References
+
+- [Angular Signals Guide](https://angular.dev/guide/signals)
+- [Angular Signals API](https://angular.dev/api/core/signal)

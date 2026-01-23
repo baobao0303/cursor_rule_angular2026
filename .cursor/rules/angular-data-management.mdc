@@ -1,0 +1,316 @@
+---
+description: Angular data management patterns with services, state management, and HTTP
+globs: "**/*.{ts,html}"
+alwaysApply: false
+---
+
+# Angular Data Management
+
+**Comprehensive guide to data management in Angular applications**
+
+## Service-Based Data Management
+
+### Basic Service Pattern
+```typescript
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private users = signal<User[]>([]);
+  readonly users$ = this.users.asReadonly();
+  
+  loading = signal(false);
+  error = signal<string | null>(null);
+  
+  constructor(private http: HttpClient) {}
+  
+  loadUsers() {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    this.http.get<User[]>('/api/users')
+      .pipe(
+        catchError(error => {
+          this.error.set(error.message);
+          return of([]);
+        }),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe(users => this.users.set(users));
+  }
+  
+  createUser(user: CreateUserDto) {
+    return this.http.post<User>('/api/users', user)
+      .pipe(
+        tap(newUser => {
+          this.users.update(users => [...users, newUser]);
+        })
+      );
+  }
+}
+```
+
+## State Management Patterns
+
+### Simple State with Signals
+```typescript
+@Injectable({ providedIn: 'root' })
+export class AppState {
+  // User state
+  private currentUser = signal<User | null>(null);
+  readonly currentUser$ = this.currentUser.asReadonly();
+  
+  // UI state
+  sidebarOpen = signal(false);
+  theme = signal<'light' | 'dark'>('light');
+  
+  // Computed state
+  isAuthenticated = computed(() => this.currentUser() !== null);
+  
+  setUser(user: User | null) {
+    this.currentUser.set(user);
+  }
+  
+  toggleSidebar() {
+    this.sidebarOpen.update(open => !open);
+  }
+}
+```
+
+### Advanced State with RxJS
+```typescript
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map, shareReplay } from 'rxjs/operators';
+
+@Injectable({ providedIn: 'root' })
+export class UserStateService {
+  private usersSubject = new BehaviorSubject<User[]>([]);
+  users$ = this.usersSubject.asObservable().pipe(shareReplay(1));
+  
+  activeUsers$ = this.users$.pipe(
+    map(users => users.filter(u => u.active))
+  );
+  
+  userCount$ = this.users$.pipe(
+    map(users => users.length)
+  );
+  
+  setUsers(users: User[]) {
+    this.usersSubject.next(users);
+  }
+  
+  addUser(user: User) {
+    const current = this.usersSubject.value;
+    this.usersSubject.next([...current, user]);
+  }
+}
+```
+
+## HTTP Client Patterns
+
+### CRUD Operations
+```typescript
+@Injectable({ providedIn: 'root' })
+export class ApiService {
+  constructor(private http: HttpClient) {}
+  
+  // GET - Read
+  get<T>(endpoint: string): Observable<T> {
+    return this.http.get<T>(endpoint);
+  }
+  
+  // POST - Create
+  post<T>(endpoint: string, data: any): Observable<T> {
+    return this.http.post<T>(endpoint, data);
+  }
+  
+  // PUT - Update
+  put<T>(endpoint: string, data: any): Observable<T> {
+    return this.http.put<T>(endpoint, data);
+  }
+  
+  // DELETE
+  delete<T>(endpoint: string): Observable<T> {
+    return this.http.delete<T>(endpoint);
+  }
+}
+```
+
+### Error Handling
+```typescript
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  constructor(private http: HttpClient) {}
+  
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>('/api/users').pipe(
+      catchError(error => {
+        if (error.status === 404) {
+          console.error('Users not found');
+          return of([]);
+        }
+        if (error.status === 500) {
+          console.error('Server error');
+          return throwError(() => new Error('Server error'));
+        }
+        return throwError(() => error);
+      })
+    );
+  }
+}
+```
+
+### Request Interceptors
+```typescript
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      const cloned = req.clone({
+        headers: req.headers.set('Authorization', `Bearer ${token}`)
+      });
+      return next.handle(cloned);
+    }
+    
+    return next.handle(req);
+  }
+}
+
+// In app.config.ts
+export const appConfig: ApplicationConfig = {
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+  ]
+};
+```
+
+## Caching Strategies
+
+### Simple Cache with Signals
+```typescript
+@Injectable({ providedIn: 'root' })
+export class CachedUserService {
+  private cache = signal<Map<string, User>>(new Map());
+  private cacheTime = signal<Map<string, number>>(new Map());
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  
+  constructor(private http: HttpClient) {}
+  
+  getUser(id: string): Observable<User> {
+    const cached = this.cache().get(id);
+    const cachedTime = this.cacheTime().get(id);
+    
+    if (cached && cachedTime && Date.now() - cachedTime < this.CACHE_DURATION) {
+      return of(cached);
+    }
+    
+    return this.http.get<User>(`/api/users/${id}`).pipe(
+      tap(user => {
+        this.cache.update(cache => {
+          const newCache = new Map(cache);
+          newCache.set(id, user);
+          return newCache;
+        });
+        this.cacheTime.update(times => {
+          const newTimes = new Map(times);
+          newTimes.set(id, Date.now());
+          return newTimes;
+        });
+      })
+    );
+  }
+}
+```
+
+### RxJS Cache Pattern
+```typescript
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private cache$ = new Map<string, Observable<User>>();
+  
+  constructor(private http: HttpClient) {}
+  
+  getUser(id: string): Observable<User> {
+    if (!this.cache$.has(id)) {
+      this.cache$.set(
+        id,
+        this.http.get<User>(`/api/users/${id}`).pipe(
+          shareReplay(1),
+          finalize(() => this.cache$.delete(id))
+        )
+      );
+    }
+    return this.cache$.get(id)!;
+  }
+}
+```
+
+## Form Data Management
+
+### Reactive Forms
+```typescript
+export class UserFormComponent {
+  form = new FormGroup({
+    name: new FormControl('', [Validators.required]),
+    email: new FormControl('', [Validators.required, Validators.email]),
+    age: new FormControl(0, [Validators.min(18)])
+  });
+  
+  constructor(private userService: UserService) {}
+  
+  onSubmit() {
+    if (this.form.valid) {
+      this.userService.createUser(this.form.value)
+        .pipe(takeUntilDestroyed())
+        .subscribe({
+          next: () => this.form.reset(),
+          error: (error) => console.error(error)
+        });
+    }
+  }
+}
+```
+
+## Best Practices
+
+### 1. Use Signals for Simple State
+```typescript
+// ✅ DO: Signals for local state
+private users = signal<User[]>([]);
+readonly users$ = this.users.asReadonly();
+```
+
+### 2. Use RxJS for Complex Async Operations
+```typescript
+// ✅ DO: RxJS for complex streams
+users$ = this.http.get<User[]>('/api/users').pipe(
+  map(users => users.filter(u => u.active)),
+  shareReplay(1)
+);
+```
+
+### 3. Centralize Data Management
+```typescript
+// ✅ DO: Central service for related data
+@Injectable({ providedIn: 'root' })
+export class UserDataService {
+  // All user-related data management
+}
+```
+
+### 4. Handle Errors Gracefully
+```typescript
+// ✅ DO: Proper error handling
+.pipe(
+  catchError(error => {
+    this.error.set(error.message);
+    return of([]);
+  })
+)
+```
+
+## References
+
+- [Angular HTTP Client](https://angular.dev/guide/http)
+- [Angular Services](https://angular.dev/guide/services)
+- [Angular Signals](https://angular.dev/guide/signals)

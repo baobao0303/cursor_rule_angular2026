@@ -1,0 +1,58 @@
+---
+description: Perform comprehensive code quality and security checks
+globs: "**/*.{ts,js,tsx,jsx,py,java,go,rs}"
+alwaysApply: false
+---
+
+# Check
+
+Perform comprehensive code quality and security checks.
+
+## Primary Task:
+Run Angular check commands and resolve any resulting errors:
+- `ng lint` - Angular linting
+- `ng build` - Build verification
+- `ng test --watch=false` - Run tests
+- `ng e2e` - End-to-end tests (if configured)
+
+## Important:
+- DO NOT commit any code during this process
+- DO NOT change version numbers
+- Focus only on fixing issues identified by checks
+
+## Common Checks Include:
+1. **Angular Linting**: `ng lint` - Code style and Angular best practices
+2. **Type Checking**: TypeScript compilation errors (`ng build --configuration development`)
+3. **Unit Tests**: `ng test --watch=false` - Failing test cases
+4. **E2E Tests**: `ng e2e` - End-to-end test failures
+5. **Security Scan**: `npm audit` - Vulnerability detection
+6. **Code Formatting**: Prettier/ESLint formatting issues
+7. **Build Verification**: `ng build` - Compilation and bundling errors
+8. **Bundle Analysis**: Check bundle size and optimization
+
+## Process:
+1. Run Angular check commands:
+   ```bash
+   ng lint
+   ng build
+   ng test --watch=false
+   ```
+2. Analyze output for errors and warnings
+3. Fix issues in priority order:
+   - Build-breaking errors first (`ng build`)
+   - TypeScript compilation errors
+   - Test failures (`ng test`)
+   - Linting errors (`ng lint`)
+   - Security vulnerabilities (`npm audit`)
+   - Warnings
+4. Re-run checks after each fix
+5. Continue until all checks pass
+
+## Angular-Specific Commands:
+- **Linting**: `ng lint` or `ng lint --fix`
+- **Build**: `ng build` or `ng build --configuration production`
+- **Tests**: `ng test` or `ng test --watch=false --browsers=ChromeHeadless`
+- **E2E**: `ng e2e` (if configured)
+- **Type Check**: `ng build --configuration development` (includes type checking)
+- **Security**: `npm audit` or `npm audit fix`
+- **Format**: `npx prettier --write .` and `npx eslint . --fix`

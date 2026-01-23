@@ -1,0 +1,113 @@
+---
+description: Perform advanced code analysis with multiple inspection options
+globs: "**/*.{ts,js,tsx,jsx,py,java,go,rs}"
+alwaysApply: false
+---
+
+# Code Analysis
+
+Perform advanced code analysis with multiple inspection options.
+
+## Analysis Menu:
+
+### 1. Knowledge Graph Generation
+- Map relationships between components
+- Visualize dependencies
+- Identify architectural patterns
+
+### 2. Code Quality Evaluation
+- Complexity metrics
+- Maintainability index
+- Technical debt assessment
+- Code duplication detection
+
+### 3. Performance Analysis
+- Identify bottlenecks:
+  - Change detection cycles
+  - Large bundle sizes
+  - Unoptimized RxJS subscriptions
+  - Missing OnPush change detection
+- Memory usage patterns:
+  - Memory leaks from unsubscribed observables
+  - Large component trees
+  - Inefficient data structures
+- Algorithm complexity
+- HTTP request optimization:
+  - Unnecessary API calls
+  - Missing caching strategies
+  - Large payload sizes
+- Bundle size analysis:
+  - Use `ng build --stats-json` and webpack-bundle-analyzer
+  - Identify large dependencies
+  - Check for tree-shaking opportunities
+
+### 4. Security Review
+- Vulnerability scanning:
+  - `npm audit` for dependency vulnerabilities
+  - Angular security advisories
+- Input validation checks:
+  - Reactive forms validation
+  - Template-driven forms validation
+  - XSS prevention in templates
+- Authentication/authorization review:
+  - Route guards implementation
+  - JWT token handling
+  - Role-based access control
+- Sensitive data handling:
+  - Secure storage of tokens
+  - HTTP interceptors for auth headers
+  - CORS configuration
+  - Content Security Policy
+
+### 5. Architecture Review
+- Angular design patterns:
+  - Component-based architecture
+  - Dependency injection usage
+  - Service layer separation
+  - Module vs Standalone components
+- SOLID principles compliance:
+  - Single Responsibility (components vs services)
+  - Dependency Inversion (constructor injection)
+- Coupling and cohesion analysis:
+  - Component dependencies
+  - Service dependencies
+  - Module boundaries
+  - Feature module organization
+- Angular style guide compliance:
+  - Naming conventions
+  - File organization
+  - Code organization
+
+### 6. Test Coverage Analysis
+- Coverage percentages:
+  - Run `ng test --code-coverage`
+  - Component test coverage
+  - Service test coverage
+- Untested code paths:
+  - Untested component methods
+  - Untested service methods
+  - Untested error handling
+- Test quality assessment:
+  - Test isolation
+  - Mock usage
+  - Assertion quality
+  - Test maintainability
+- Missing edge cases:
+  - Error scenarios
+  - Boundary conditions
+  - Async operation handling
+  - Form validation edge cases
+
+## Process:
+1. Select analysis type based on need
+2. Run appropriate tools and inspections
+3. Generate comprehensive report
+4. Provide actionable recommendations
+5. Prioritize improvements by impact
+
+## Output Format:
+- Executive summary
+- Detailed findings
+- Risk assessment
+- Improvement roadmap
+- Code examples where relevant

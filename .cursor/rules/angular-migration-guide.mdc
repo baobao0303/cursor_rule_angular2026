@@ -1,0 +1,288 @@
+---
+description: Migration guide for upgrading Angular applications to latest versions
+globs: "**/*.{ts,json}, angular.json, package.json"
+alwaysApply: false
+---
+
+# Angular Migration Guide
+
+**Step-by-step guide for migrating Angular applications to latest versions**
+
+## Pre-Migration Checklist
+
+### 1. Check Current Version
+```bash
+ng version
+```
+
+### 2. Review Breaking Changes
+- Check [Angular Update Guide](https://update.angular.io/)
+- Review changelog for target version
+- Identify deprecated APIs
+
+### 3. Update Dependencies
+```bash
+# Check for outdated packages
+npm outdated
+
+# Update Angular CLI
+npm install -g @angular/cli@latest
+```
+
+## Migration Process
+
+### Step 1: Update Angular CLI
+```bash
+# Update globally
+npm install -g @angular/cli@latest
+
+# Update in project
+ng update @angular/cli
+```
+
+### Step 2: Update Core Packages
+```bash
+# Update Angular core packages
+ng update @angular/core @angular/cli
+
+# Update with automatic migrations
+ng update @angular/core @angular/cli --migrate-only
+```
+
+### Step 3: Update Other Packages
+```bash
+# Update Angular Material
+ng update @angular/material
+
+# Update other Angular packages
+ng update @angular/cdk
+ng update @angular/router
+```
+
+## Common Migrations
+
+### Migrating to Standalone Components
+
+#### Before (NgModule)
+```typescript
+// app.module.ts
+@NgModule({
+  declarations: [UserComponent],
+  imports: [CommonModule, FormsModule],
+  providers: [UserService]
+})
+export class AppModule {}
+
+// user.component.ts
+@Component({
+  selector: 'app-user',
+  template: `...`
+})
+export class UserComponent {}
+```
+
+#### After (Standalone)
+```typescript
+// user.component.ts
+@Component({
+  selector: 'app-user',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `...`
+})
+export class UserComponent {}
+
+// main.ts
+bootstrapApplication(AppComponent, {
+  providers: [UserService]
+});
+```
+
+### Migrating to Signals
+
+#### Before (RxJS)
+```typescript
+export class UserService {
+  private users$ = new BehaviorSubject<User[]>([]);
+  
+  getUsers() {
+    return this.users$.asObservable();
+  }
+  
+  loadUsers() {
+    this.http.get<User[]>('/api/users')
+      .subscribe(users => this.users$.next(users));
+  }
+}
+```
+
+#### After (Signals)
+```typescript
+import { signal, computed } from '@angular/core';
+
+export class UserService {
+  private users = signal<User[]>([]);
+  readonly users$ = this.users.asReadonly();
+  
+  userCount = computed(() => this.users().length);
+  
+  loadUsers() {
+    this.http.get<User[]>('/api/users')
+      .subscribe(users => this.users.set(users));
+  }
+}
+```
+
+### Migrating to New Control Flow
+
+#### Before (Structural Directives)
+```html
+<div *ngIf="user">
+  <p>{{ user.name }}</p>
+</div>
+
+<div *ngFor="let item of items">
+  {{ item.name }}
+</div>
+
+<div [ngSwitch]="status">
+  <p *ngSwitchCase="'active'">Active</p>
+  <p *ngSwitchDefault>Inactive</p>
+</div>
+```
+
+#### After (New Control Flow)
+```html
+@if (user()) {
+  <p>{{ user().name }}</p>
+}
+
+@for (item of items(); track item.id) {
+  <div>{{ item.name }}</div>
+}
+
+@switch (status()) {
+  @case ('active') {
+    <p>Active</p>
+  }
+  @default {
+    <p>Inactive</p>
+  }
+}
+```
+
+### Migrating HTTP Client
+
+#### Before (HttpClient with RxJS)
+```typescript
+export class UserService {
+  users$ = this.http.get<User[]>('/api/users').pipe(
+    shareReplay(1)
+  );
+}
+```
+
+#### After (Signals with toSignal)
+```typescript
+import { toSignal } from '@angular/core/rxjs-interop';
+
+export class UserService {
+  users = toSignal(
+    this.http.get<User[]>('/api/users'),
+    { initialValue: [] }
+  );
+}
+```
+
+## Angular Version-Specific Migrations
+
+### Angular 17+ (Standalone by Default)
+```bash
+# Generate standalone components
+ng generate component user --standalone
+
+# Convert existing components
+ng generate @angular/core:standalone
+```
+
+### Angular 16+ (Signals)
+```typescript
+// Migrate from BehaviorSubject to signals
+// See Signals migration section above
+```
+
+### Angular 15+ (Standalone APIs)
+```typescript
+// Migrate to standalone components
+// See Standalone migration section above
+```
+
+## Testing Migrations
+
+### Update Test Configuration
+```typescript
+// Before
+TestBed.configureTestingModule({
+  declarations: [Component],
+  imports: [Module]
+});
+
+// After (Standalone)
+TestBed.configureTestingModule({
+  imports: [Component] // Component is standalone
+});
+```
+
+## Common Issues and Solutions
+
+### Issue: Module Not Found
+```bash
+# Solution: Update imports
+# Old: import { Module } from '@angular/common';
+# New: import { CommonModule } from '@angular/common';
+```
+
+### Issue: Deprecated APIs
+```typescript
+// Check Angular deprecation guide
+// Replace deprecated APIs with new ones
+```
+
+### Issue: Build Errors
+```bash
+# Clear cache and rebuild
+rm -rf node_modules .angular
+npm install
+ng build
+```
+
+## Migration Checklist
+
+- [ ] Update Angular CLI
+- [ ] Update core packages
+- [ ] Run automatic migrations
+- [ ] Update to standalone components
+- [ ] Migrate to signals (if applicable)
+- [ ] Update control flow syntax
+- [ ] Update tests
+- [ ] Fix linting errors
+- [ ] Update dependencies
+- [ ] Test application thoroughly
+
+## Automated Migration Tools
+
+### Angular Update Tool
+```bash
+ng update @angular/core @angular/cli
+```
+
+### Standalone Migration
+```bash
+ng generate @angular/core:standalone
+```
+
+## References
+
+- [Angular Update Guide](https://update.angular.io/)
+- [Angular Migration Guide](https://angular.dev/guide/releases)
+- [Angular Changelog](https://github.com/angular/angular/blob/main/CHANGELOG.md)

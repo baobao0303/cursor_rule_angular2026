@@ -1,0 +1,316 @@
+---
+description: Modern Angular development patterns and best practices for Angular v21+
+globs: "**/*.{ts,html,scss,css}"
+alwaysApply: false
+---
+
+# Modern Angular Development
+
+**Angular v21+ Best Practices and Patterns**
+
+## Core Principles
+
+### 1. Signals-Based Reactivity
+Angular v21 emphasizes signals for reactive state management:
+
+```typescript
+// ✅ DO: Use signals for reactive state
+import { signal, computed, effect } from '@angular/core';
+
+export class UserService {
+  private users = signal<User[]>([]);
+  userCount = computed(() => this.users().length);
+  
+  loadUsers() {
+    this.users.set([...]);
+  }
+}
+
+// ❌ DON'T: Use RxJS for simple state
+private users$ = new BehaviorSubject<User[]>([]);
+```
+
+### 2. Standalone Components
+All new components should be standalone:
+
+```typescript
+// ✅ DO: Standalone components
+@Component({
+  selector: 'app-user',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `...`
+})
+export class UserComponent {}
+
+// ❌ DON'T: NgModules for new code
+@NgModule({
+  declarations: [UserComponent],
+  imports: [CommonModule]
+})
+export class UserModule {}
+```
+
+### 3. Dependency Injection
+Use constructor injection with proper typing:
+
+```typescript
+// ✅ DO: Constructor injection
+export class UserService {
+  constructor(
+    private http: HttpClient,
+    private logger: LoggerService
+  ) {}
+}
+
+// ❌ DON'T: Inject in methods or use any
+constructor(private http: any) {}
+```
+
+### 4. OnPush Change Detection
+Default to OnPush for better performance:
+
+```typescript
+// ✅ DO: OnPush change detection
+@Component({
+  selector: 'app-user',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true
+})
+export class UserComponent {}
+
+// ❌ DON'T: Default change detection unless necessary
+@Component({
+  selector: 'app-user',
+  // Default change detection (checks all components)
+})
+```
+
+### 5. RxJS Best Practices
+Use async pipe and proper subscription handling:
+
+```typescript
+// ✅ DO: Async pipe in templates
+users$ = this.userService.getUsers();
+
+// Template
+<div *ngFor="let user of users$ | async">{{ user.name }}</div>
+
+// ✅ DO: takeUntilDestroyed for subscriptions
+import { takeUntilDestroyed } from '@angular/core';
+
+this.userService.getUsers()
+  .pipe(takeUntilDestroyed())
+  .subscribe(users => this.users = users);
+
+// ❌ DON'T: Manual subscriptions without cleanup
+this.userService.getUsers().subscribe(users => {
+  this.users = users; // Memory leak risk
+});
+```
+
+## Component Architecture
+
+### Component Structure
+```typescript
+@Component({
+  selector: 'app-feature',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `...`,
+  styles: [`...`]
+})
+export class FeatureComponent implements OnInit, OnDestroy {
+  // Signals for reactive state
+  data = signal<Data[]>([]);
+  loading = signal(false);
+  
+  // Computed values
+  hasData = computed(() => this.data().length > 0);
+  
+  // RxJS observables (when needed)
+  users$ = this.userService.getUsers();
+  
+  constructor(
+    private userService: UserService,
+    private router: Router
+  ) {}
+  
+  ngOnInit() {
+    this.loadData();
+  }
+  
+  ngOnDestroy() {
+    // Cleanup if needed
+  }
+  
+  private loadData() {
+    this.loading.set(true);
+    this.userService.getData()
+      .pipe(
+        takeUntilDestroyed(),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe(data => this.data.set(data));
+  }
+}
+```
+
+## Service Patterns
+
+### Service with Signals
+```typescript
+@Injectable({ providedIn: 'root' })
+export class DataService {
+  private data = signal<Data[]>([]);
+  data$ = this.data.asReadonly();
+  
+  loading = signal(false);
+  error = signal<string | null>(null);
+  
+  constructor(private http: HttpClient) {}
+  
+  loadData() {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    this.http.get<Data[]>('/api/data')
+      .pipe(
+        catchError(error => {
+          this.error.set(error.message);
+          return of([]);
+        }),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe(data => this.data.set(data));
+  }
+}
+```
+
+## Form Handling
+
+### Reactive Forms
+```typescript
+export class UserFormComponent {
+  form = new FormGroup({
+    name: new FormControl('', [Validators.required]),
+    email: new FormControl('', [Validators.required, Validators.email])
+  });
+  
+  onSubmit() {
+    if (this.form.valid) {
+      this.userService.createUser(this.form.value)
+        .pipe(takeUntilDestroyed())
+        .subscribe();
+    }
+  }
+}
+```
+
+## Routing
+
+### Standalone Route Configuration
+```typescript
+export const routes: Routes = [
+  {
+    path: 'users',
+    loadComponent: () => import('./users/users.component')
+      .then(m => m.UsersComponent)
+  },
+  {
+    path: 'users/:id',
+    loadComponent: () => import('./user-detail/user-detail.component')
+      .then(m => m.UserDetailComponent)
+  }
+];
+```
+
+## Testing
+
+### Component Testing
+```typescript
+describe('UserComponent', () => {
+  let component: UserComponent;
+  let fixture: ComponentFixture<UserComponent>;
+  
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [UserComponent],
+      providers: [
+        { provide: UserService, useValue: mockUserService }
+      ]
+    }).compileComponents();
+    
+    fixture = TestBed.createComponent(UserComponent);
+    component = fixture.componentInstance;
+  });
+  
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+```
+
+## Performance Optimization
+
+### Lazy Loading
+```typescript
+// ✅ DO: Lazy load routes
+{
+  path: 'feature',
+  loadComponent: () => import('./feature/feature.component')
+    .then(m => m.FeatureComponent)
+}
+
+// ✅ DO: Lazy load modules (if using NgModules)
+{
+  path: 'feature',
+  loadChildren: () => import('./feature/feature.module')
+    .then(m => m.FeatureModule)
+}
+```
+
+### TrackBy Functions
+```typescript
+// ✅ DO: Use trackBy for *ngFor
+trackByUserId(index: number, user: User): number {
+  return user.id;
+}
+
+// Template
+<div *ngFor="let user of users; trackBy: trackByUserId">
+```
+
+## TypeScript Best Practices
+
+### Strict Mode
+Always use TypeScript strict mode:
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true
+  }
+}
+```
+
+### Type Safety
+```typescript
+// ✅ DO: Proper typing
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+// ❌ DON'T: Use any
+function processUser(user: any) {}
+```
+
+## References
+
+- [Angular Documentation](https://angular.dev)
+- [Angular Signals Guide](https://angular.dev/guide/signals)
+- [Angular Testing Guide](https://angular.dev/guide/testing)

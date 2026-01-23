@@ -1,0 +1,89 @@
+---
+description: Create comprehensive documentation for components or features
+globs: "**/*.{md,mdc,txt}"
+alwaysApply: false
+---
+
+# Create Docs
+
+Create comprehensive documentation for specified components or features.
+
+## Analysis Areas:
+1. Code structure and purpose
+2. Inputs, outputs, and behavior
+3. User interaction flows
+4. Edge cases and error handling
+5. Integration points with other components/systems
+
+## Documentation Template:
+
+### Overview
+Brief 1-2 paragraph overview explaining purpose and value
+
+### Usage
+How to use this component/feature with examples
+
+### API / Inputs / Outputs / Parameters
+Detailed specification of:
+- `@Input()` properties
+- `@Output()` events
+- Service methods and their signatures
+- Component methods (public API)
+- Injectable dependencies
+
+### Component Hierarchy
+Structure and relationships:
+- Parent-child component relationships
+- Component tree structure
+- Module/feature organization
+- Routing structure (if applicable)
+
+### State Management
+How state is handled and flows through the system:
+- Component local state (`@Input()`, `@Output()`)
+- Service state (RxJS Observables, Signals)
+- NgRx store (if used)
+- Route parameters and query params
+- Form state (reactive forms)
+
+### Behavior
+Expected behavior in different scenarios
+
+### Error Handling
+How errors are caught, handled, and reported
+
+### Performance Considerations
+Optimization notes and performance characteristics
+
+### Accessibility
+Accessibility features and compliance
+
+### Testing
+How to test this component/feature:
+- Unit test setup with `TestBed`
+- Mock dependencies
+- Test component inputs/outputs
+- Test service methods
+- E2E test scenarios (if applicable)
+- Example test code
+
+### Related Components/Features
+Links to related documentation
+
+## Process:
+1. Analyze the target code thoroughly
+2. Identify all public interfaces
+3. Document expected behaviors
+4. Include code examples
+5. Add diagrams where helpful
+6. Follow project documentation standards
+7. Ensure clarity, completeness, and actionability
+
+## Output Formats:
+- Markdown for general documentation
+- JSDoc/TSDoc for Angular code comments
+- Angular component/service documentation
+- API documentation format
+- README files
+- Architecture decision records (ADRs)
+- Angular style guide compliant documentation

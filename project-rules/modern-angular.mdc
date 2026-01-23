@@ -1,0 +1,240 @@
+---
+description: Write idiomatic Angular code following latest best practices
+globs: "**/*.{ts,html,scss,css}"
+alwaysApply: false
+---
+
+# Modern Angular Development
+
+Write idiomatic Angular code following Angular's latest architectural recommendations and best practices.
+
+## Core Philosophy
+
+- Angular is a full-featured framework - leverage its built-in capabilities
+- Embrace reactive programming with RxJS
+- Use dependency injection for all services
+- Follow component-based architecture
+- Prioritize performance with OnPush change detection
+- Write type-safe code with TypeScript
+
+## Architecture Guidelines
+
+### 1. Component Architecture
+
+Use Angular's component-based architecture effectively:
+- **Components** - Presentational and container components
+- **Services** - Business logic and data access
+- **Directives** - Reusable behavior
+- **Pipes** - Data transformation
+- **Guards** - Route protection
+- **Interceptors** - HTTP request/response handling
+
+### 2. State Management
+
+Choose appropriate state management strategy:
+- **Component State** - Use `@Input()` and `@Output()` for parent-child communication
+- **Service State** - Use services with RxJS `BehaviorSubject` or `Signal` for shared state
+- **NgRx** - Use for complex applications with complex state requirements
+- **Signals** (Angular 16+) - Modern reactive primitives for state management
+
+### 3. Reactive Programming
+
+Embrace RxJS for asynchronous operations:
+- Use `Observable` for async data streams
+- Prefer `async` pipe in templates
+- Use operators like `map`, `filter`, `switchMap`, `catchError`
+- Avoid nested subscriptions - use `combineLatest`, `forkJoin`, or `mergeMap`
+- Always unsubscribe or use `takeUntil` pattern
+
+### 4. Change Detection Strategy
+
+Optimize change detection:
+- Use `OnPush` change detection for better performance
+- Use `ChangeDetectorRef.markForCheck()` when needed
+- Leverage `trackBy` functions in `*ngFor`
+- Avoid unnecessary change detection cycles
+
+### 5. Dependency Injection
+
+Use Angular's DI system effectively:
+- Inject dependencies through constructor
+- Use `providedIn: 'root'` for singleton services
+- Use `providedIn: 'any'` for per-component services
+- Create feature-specific injectors when needed
+
+### 6. Code Organization
+
+Follow Angular style guide:
+- Feature-based folder structure
+- One component/service per file
+- Use barrel exports (`index.ts`) for public API
+- Keep components focused and single-responsibility
+- Extract reusable logic to services
+
+## Implementation Patterns
+
+### Component with OnPush Change Detection
+```typescript
+@Component({
+  selector: 'app-user-list',
+  templateUrl: './user-list.component.html',
+  styleUrls: ['./user-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class UserListComponent {
+  users$ = this.userService.getUsers();
+  
+  constructor(private userService: UserService) {}
+  
+  trackByUserId(index: number, user: User): number {
+    return user.id;
+  }
+}
+```
+
+### Service with RxJS
+```typescript
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private usersSubject = new BehaviorSubject<User[]>([]);
+  users$ = this.usersSubject.asObservable();
+  
+  constructor(private http: HttpClient) {}
+  
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>('/api/users').pipe(
+      tap(users => this.usersSubject.next(users)),
+      catchError(error => {
+        console.error('Error fetching users', error);
+        return of([]);
+      })
+    );
+  }
+}
+```
+
+### Component with Signals (Angular 16+)
+```typescript
+@Component({
+  selector: 'app-counter',
+  template: `
+    <div>Count: {{ count() }}</div>
+    <button (click)="increment()">Increment</button>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class CounterComponent {
+  count = signal(0);
+  
+  increment(): void {
+    this.count.update(value => value + 1);
+  }
+}
+```
+
+### Reactive Forms
+```typescript
+@Component({
+  selector: 'app-user-form',
+  templateUrl: './user-form.component.html'
+})
+export class UserFormComponent {
+  userForm = this.fb.group({
+    name: ['', [Validators.required, Validators.minLength(3)]],
+    email: ['', [Validators.required, Validators.email]],
+    age: [0, [Validators.required, Validators.min(18)]]
+  });
+  
+  constructor(private fb: FormBuilder) {}
+  
+  onSubmit(): void {
+    if (this.userForm.valid) {
+      const user = this.userForm.value;
+      // Handle form submission
+    }
+  }
+}
+```
+
+### HTTP Interceptor
+```typescript
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    const token = this.authService.getToken();
+    
+    if (token) {
+      req = req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    }
+    
+    return next.handle(req).pipe(
+      catchError(error => {
+        if (error.status === 401) {
+          this.authService.logout();
+        }
+        return throwError(() => error);
+      })
+    );
+  }
+}
+```
+
+## Best Practices
+
+### DO:
+- Use `OnPush` change detection by default
+- Use `async` pipe in templates instead of manual subscription
+- Create small, focused components
+- Extract business logic to services
+- Use TypeScript strict mode
+- Write unit tests for services and components
+- Use reactive forms for complex forms
+- Leverage Angular CLI for code generation
+- Use lazy loading for feature modules
+- Implement proper error handling
+
+### DON'T:
+- Don't use `any` type - use proper TypeScript types
+- Don't subscribe in components without unsubscribing
+- Don't mutate objects directly - use immutable patterns
+- Don't put business logic in components
+- Don't use `setTimeout` for change detection workarounds
+- Don't ignore TypeScript errors
+- Don't create services without proper DI
+- Don't use `*ngIf` with `async` pipe multiple times - use `@if` (Angular 17+)
+
+## Testing Strategy
+
+- Unit test services with `TestBed`
+- Test components with `ComponentFixture`
+- Use `HttpTestingController` for HTTP testing
+- Mock dependencies with Jasmine spies
+- Test reactive code with `RxJS` testing utilities
+- Use `NO_ERRORS_SCHEMA` for shallow component testing
+
+## Modern Angular Features
+
+- Use **Standalone Components** (Angular 14+) for simpler architecture
+- Leverage **Signals** (Angular 16+) for reactive state
+- Use **Control Flow** (`@if`, `@for`, `@switch`) (Angular 17+)
+- Utilize **inject()** function for dependency injection (Angular 14+)
+- Use **typed forms** for better type safety
+- Leverage **Angular DevTools** for debugging
+
+## Performance Optimization
+
+- Use `OnPush` change detection
+- Implement lazy loading
+- Use `trackBy` in `*ngFor`
+- Optimize bundle size with tree-shaking
+- Use `async` pipe to prevent memory leaks
+- Implement virtual scrolling for large lists
+- Use `runOutsideAngular` for heavy computations
+
+## Summary
+
+Write Angular code that leverages the framework's strengths. Use reactive programming, dependency injection, and component-based architecture. Focus on performance, type safety, and maintainability. Follow Angular style guide and use modern features when available.

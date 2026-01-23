@@ -1,0 +1,221 @@
+---
+description: Angular CLI commands reference and usage patterns
+globs: "**/*.{ts,json}, angular.json, package.json"
+alwaysApply: false
+---
+
+# Angular CLI Commands
+
+**Complete reference for Angular CLI commands and usage patterns**
+
+## Project Setup
+
+### Create New Project
+```bash
+# Create new Angular workspace
+ng new my-app
+
+# Create with specific options
+ng new my-app --routing --style=scss --standalone
+```
+
+### Generate Components
+```bash
+# Generate standalone component
+ng generate component user --standalone
+
+# Generate component with inline template
+ng generate component user --inline-template
+
+# Generate component in specific path
+ng generate component features/user/user-list
+```
+
+### Generate Services
+```bash
+# Generate service
+ng generate service user
+
+# Generate service with providedIn root
+ng generate service user --skip-tests
+```
+
+### Generate Modules
+```bash
+# Generate feature module
+ng generate module user
+
+# Generate module with routing
+ng generate module user --routing
+```
+
+## Development
+
+### Serve Application
+```bash
+# Start development server
+ng serve
+
+# Start on specific port
+ng serve --port 4201
+
+# Open browser automatically
+ng serve --open
+
+# Use specific configuration
+ng serve --configuration=development
+```
+
+### Build Application
+```bash
+# Development build
+ng build
+
+# Production build
+ng build --configuration production
+
+# Build with source maps
+ng build --source-map
+
+# Build for specific output path
+ng build --output-path=dist/my-app
+```
+
+## Testing
+
+### Run Tests
+```bash
+# Run unit tests
+ng test
+
+# Run tests in watch mode
+ng test --watch
+
+# Run tests with code coverage
+ng test --code-coverage
+
+# Run specific test file
+ng test --include='**/user.service.spec.ts'
+```
+
+### E2E Testing
+```bash
+# Run E2E tests
+ng e2e
+
+# Run with specific configuration
+ng e2e --configuration=production
+```
+
+## Code Generation
+
+### Generate Guards
+```bash
+ng generate guard auth
+ng generate guard auth --functional
+```
+
+### Generate Interceptors
+```bash
+ng generate interceptor http
+```
+
+### Generate Pipes
+```bash
+ng generate pipe currency
+```
+
+### Generate Directives
+```bash
+ng generate directive highlight
+```
+
+### Generate Resolvers
+```bash
+ng generate resolver user
+```
+
+## Linting and Formatting
+
+### Lint Code
+```bash
+# Run linter
+ng lint
+
+# Fix linting errors automatically
+ng lint --fix
+
+# Lint specific project
+ng lint my-project
+```
+
+### Format Code
+```bash
+# Format all files
+npx prettier --write "**/*.{ts,html,scss}"
+
+# Check formatting
+npx prettier --check "**/*.{ts,html,scss}"
+```
+
+## Configuration
+
+### Update Angular
+```bash
+# Update Angular CLI globally
+npm install -g @angular/cli@latest
+
+# Update Angular in project
+ng update @angular/core @angular/cli
+
+# Update with migration
+ng update @angular/core --migrate-only
+```
+
+### Add Dependencies
+```bash
+# Add Angular Material
+ng add @angular/material
+
+# Add PWA support
+ng add @angular/pwa
+
+# Add Angular Universal (SSR)
+ng add @nguniversal/express-engine
+```
+
+## Build Optimization
+
+### Analyze Bundle
+```bash
+# Analyze bundle size
+ng build --stats-json
+npx webpack-bundle-analyzer dist/stats.json
+```
+
+### Production Build
+```bash
+# Optimized production build
+ng build --configuration production --aot --optimization
+```
+
+## Common Workflows
+
+### Complete Feature Generation
+```bash
+# Generate complete feature module
+ng generate module features/user --routing
+ng generate component features/user/user-list --module=features/user
+ng generate service features/user/user
+```
+
+### Standalone Component Setup
+```bash
+# Generate standalone component with routing
+ng generate component user --standalone --routing
+```
+
+## References
+
+- [Angular CLI Documentation](https://angular.dev/tools/cli)
+- [Angular CLI Command Reference](https://angular.dev/tools/cli/commands)

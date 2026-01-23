@@ -1,0 +1,127 @@
+---
+description: Comprehensive pull request review from multiple perspectives
+globs: "**/*.{ts,js,tsx,jsx,py,java,go,rs}"
+alwaysApply: false
+---
+
+# Pull Request Review
+
+Comprehensive pull request review from multiple perspectives.
+
+## Review Roles:
+
+### 1. Product Manager Review
+- **Business Value**: Does this deliver promised value?
+- **User Experience**: Will users benefit from this change?
+- **Strategic Alignment**: Does it align with product goals?
+- **Feature Completeness**: Are all requirements met?
+- **Action**: Provide directives for maximum impact
+
+### 2. Developer Review (Angular)
+- **Code Quality**: Is code clean and maintainable?
+- **Angular Standards**: Does it follow Angular style guide?
+- **TypeScript**: Proper type usage, no `any` types?
+- **Change Detection**: Using OnPush where appropriate?
+- **RxJS**: Proper subscription handling, using async pipe?
+- **Performance**: Are there efficiency concerns?
+  - Bundle size impact
+  - Change detection optimization
+  - Lazy loading opportunities
+- **Scalability**: Will it handle growth?
+- **Dependency Injection**: Proper use of DI?
+- **Refactoring**: Any code that needs improvement?
+- **Action**: Suggest specific Angular code improvements
+
+### 3. Quality Engineer Review (Angular)
+- **Test Coverage**: Are all paths tested?
+  - Component tests with TestBed
+  - Service tests with mocked dependencies
+  - E2E tests for critical flows
+- **Edge Cases**: Are boundary conditions handled?
+  - Form validation edge cases
+  - Error handling scenarios
+  - Async operation failures
+- **Regression Risk**: Could this break existing features?
+  - Check for breaking changes
+  - Verify existing tests still pass
+- **Test Quality**: Are tests comprehensive and clear?
+  - Proper mocking
+  - Clear test descriptions
+  - Isolated test cases
+- **Angular Testing**: Using Angular testing utilities correctly?
+- **Action**: Identify missing tests and scenarios
+
+### 4. Security Engineer Review (Angular)
+- **Vulnerabilities**: Any security risks?
+  - Check `npm audit` results
+  - Angular version security patches
+- **Data Handling**: Is sensitive data protected?
+  - Secure token storage
+  - HTTP interceptors for auth
+- **Authentication**: Are auth checks proper?
+  - Route guards implementation
+  - Service-level authorization
+- **Input Validation**: Is user input sanitized?
+  - Reactive forms validation
+  - XSS prevention (Angular's built-in sanitization)
+  - Template security (no innerHTML with user data)
+- **Compliance**: Does it meet security standards?
+  - CORS configuration
+  - Content Security Policy
+- **Action**: Flag security concerns immediately
+
+### 5. DevOps Review (Angular)
+- **CI/CD Integration**: Will builds succeed?
+  - `ng build` passes
+  - `ng test` passes
+  - `ng lint` passes
+- **Configuration**: Are configs properly managed?
+  - Environment files updated
+  - `angular.json` changes reviewed
+  - Build configurations correct
+- **Infrastructure**: Any deployment concerns?
+  - Bundle size impact
+  - Lazy loading configured
+  - Production build optimization
+- **Monitoring**: Are metrics and logs adequate?
+  - Error tracking setup
+  - Performance monitoring
+- **Rollback**: Can changes be safely reverted?
+  - Breaking changes documented
+  - Migration path if needed
+- **Action**: Ensure smooth deployment
+
+### 6. UI/UX Designer Review (Angular)
+- **Visual Consistency**: Does it match design system?
+  - Angular Material or custom theme
+  - Component styling consistency
+- **Usability**: Is it intuitive to use?
+  - Form validation feedback
+  - Loading states
+  - Error messages
+- **Accessibility**: Is it accessible to all users?
+  - ARIA attributes
+  - Keyboard navigation
+  - Screen reader support
+  - Angular CDK a11y features
+- **Responsive**: Does it work on all devices?
+  - Angular Flex Layout or CSS Grid
+  - Breakpoint handling
+  - Mobile-first approach
+- **Angular-Specific**: 
+  - Template syntax correct
+  - Component lifecycle handled
+  - Animations smooth
+- **Polish**: Any rough edges to smooth?
+- **Action**: Ensure delightful user experience
+
+## Review Process:
+1. Read PR description and linked issues
+2. Review code changes systematically
+3. Test functionality locally if applicable
+4. Consider each perspective above
+5. Leave constructive feedback
+6. Approve or request changes
+
+## Key Principle:
+**Improvements scheduled for "later" must be addressed NOW!**

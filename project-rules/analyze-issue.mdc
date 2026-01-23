@@ -1,0 +1,91 @@
+---
+description: Fetch GitHub issue details and create implementation specification
+globs: "**/*.{ts,js,tsx,jsx,py,java,go,rs}"
+alwaysApply: false
+---
+
+# Analyze Issue
+
+Fetch GitHub issue details and create a comprehensive implementation specification.
+
+## Template Sections:
+
+### 1. Issue Summary
+Brief overview of the issue
+
+### 2. Problem Statement  
+Clear definition of what needs to be solved
+
+### 3. Technical Approach
+High-level solution approach and architecture decisions
+
+### 4. Implementation Plan (Angular)
+Step-by-step breakdown of implementation tasks:
+- Generate Angular components/services: `ng generate component <name>`
+- Define TypeScript interfaces/models
+- Implement services with RxJS
+- Create components with templates
+- Set up routing if needed
+- Add guards/interceptors if required
+
+### 5. Test Plan (Angular)
+Testing strategy and test cases to write:
+- Unit tests for services with `TestBed`
+- Component tests with mocked dependencies
+- E2E tests for critical user flows
+- Test cases for error scenarios
+- Form validation tests
+
+### 6. Files to Modify (Angular)
+List of existing files that need changes:
+- Components (`.component.ts`, `.component.html`, `.component.scss`)
+- Services (`.service.ts`)
+- Modules (`.module.ts`) or standalone component imports
+- Routing configuration (`app-routing.module.ts`)
+- Models/interfaces (`.model.ts` or `.interface.ts`)
+
+### 7. Files to Create (Angular)
+New files that need to be created:
+- Components: `ng generate component <name>`
+- Services: `ng generate service <name>`
+- Guards: `ng generate guard <name>`
+- Interceptors: `ng generate interceptor <name>`
+- Models/Interfaces: TypeScript interface files
+- Modules: Feature modules if needed
+
+### 8. Existing Utilities to Leverage (Angular)
+Project utilities/helpers that can be reused:
+- Shared services
+- Common components
+- Utility functions
+- HTTP interceptors
+- Route guards
+- Custom pipes/directives
+- Angular Material components (if used)
+
+### 9. Success Criteria
+Measurable criteria for completion
+
+### 10. Out of Scope
+What won't be addressed in this implementation
+
+## Process (Angular):
+1. Fetch issue details using `gh issue view <issue_number>`
+2. Review related Angular code and project structure:
+   - Component hierarchy
+   - Service dependencies
+   - Routing structure
+   - State management approach
+3. Analyze requirements thoroughly
+4. Create detailed technical specification with Angular patterns:
+   - Component architecture
+   - Service layer design
+   - RxJS observables usage
+   - Change detection strategy
+5. Follow strict TDD principles, KISS approach
+6. Enforce Angular best practices:
+   - OnPush change detection
+   - Proper RxJS subscription handling
+   - TypeScript strict mode
+7. Enforce 300-line file limit where applicable
+8. Output the full technical specification for review
